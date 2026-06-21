@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Construction AI Report</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Marked.js for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    @media print {
+      body { background: white !important; }
+      .print-hidden { display: none !important; }
+      .print-m-0 { margin: 0 !important; }
+      .print-p-0 { padding: 0 !important; }
+      .print-w-full { width: 100% !important; max-width: 100% !important; }
+      .print-shadow-none { box-shadow: none !important; }
+    }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+  </style>
+</head>
+<body class="flex font-sans text-slate-900 bg-slate-50 min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col h-screen fixed left-0 top-0 print-hidden z-40">
+    <div class="p-6 flex flex-col gap-1 border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <i data-lucide="hard-hat" class="text-yellow-400 w-7 h-7"></i>
+        <span class="text-lg font-bold tracking-tight leading-tight">Construction Reports</span>
+      </div>
+      <span class="text-xs text-slate-400 ml-10">by Hasnat Safdar</span>
+    </div>
+    <nav class="flex-1 p-4 space-y-2" id="nav-menu">
+      <button onclick="switchView('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white" data-target="dashboard">
+        <i data-lucide="home" class="w-5 h-5"></i><span>Dashboard</span>
+      </button>
+      <button onclick="switchView('create_report')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 text-slate-300" data-target="create_report">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i><span>New Report</span>
+      </button>
+      <button onclick="switchView('upload_documents')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 text-slate-300" data-target="upload_documents">
+        <i data-lucide="upload-cloud" class="w-5 h-5"></i><span>Upload Documents</span>
+      </button>
+      <button onclick="switchView('archives')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 text-slate-300" data-target="archives">
+        <i data-lucide="file-text" class="w-5 h-5"></i><span>Archives</span>
+      </button>
+      <button onclick="switchView('settings')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 text-slate-300" data-target="settings">
+        <i data-lucide="settings" class="w-5 h-5"></i><span>Settings</span>
+      </button>
+    </nav>
+    <div class="p-4 border-t border-slate-800">
+      <div class="flex items-center gap-3 px-4 py-2">
+        <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold">HS</div>
+        <div class="flex-1">
+          <p class="text-sm font-medium">Hasnat Safdar</p>
+          <p class="text-xs text-slate-400">Project App Developer</p>
+        </div>
+        <i data-lucide="log-out" class="w-4 h-4 text-slate-400 cursor-pointer hover:text-white"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-64 p-8 relative print-m-0 print-p-0 print-w-full">
+    
+    <!-- API Key Bar -->
+    <div class="absolute top-8 right-8 flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm z-50 print-hidden">
+      <div id="api-indicator" class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] transition-colors duration-300" title="API Disconnected"></div>
+      <input type="password" id="api-key-input" placeholder="Custom API Key (Optional)" class="text-sm p-1.5 outline-none border-b border-slate-200 focus:border-blue-500 w-48 bg-transparent transition-colors">
+      <button onclick="connectApi()" id="connect-btn" class="text-xs bg-slate-800 text-white px-4 py-1.5 rounded-lg font-medium hover:bg-slate-900 transition flex items-center gap-2">
+        Connect
+      </button>
+    </div>
+
+    <!-- VIEWS -->
+    
+    <!-- Dashboard View -->
+    <section id="dashboard" class="view-section active pb-24">
+      <header class="flex justify-between items-center mb-8 pr-72">
+        <div>
+          <h1 class="text-3xl font-bold text-slate-900">Project Dashboard</h1>
+          <p class="text-slate-500">Welcome back, Hasnat. Here is your site overview.</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <img id="dashboard-logo-img" src="" alt="Company Logo" class="h-10 max-w-[200px] object-contain hidden" />
+          <div class="relative">
+            <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            <button class="bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+              <i data-lucide="image" class="w-4 h-4"></i>
+              <span id="logo-btn-text">Upload Logo</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-4 rounded-full bg-blue-100 text-blue-600"><i data-lucide="file-text" class="w-6 h-6"></i></div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-500">Total Reports</p>
+            <p class="text-2xl font-bold text-slate-900" id="stat-total-reports">0</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-4 rounded-full bg-green-100 text-green-600"><i data-lucide="users" class="w-6 h-6"></i></div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-500">Avg Workforce</p>
+            <input type="text" id="stat-avg-workforce" value="350" class="text-2xl font-bold text-slate-900 bg-transparent w-full border-b border-transparent hover:border-slate-300 focus:border-blue-500 outline-none transition-colors" onchange="updateStat('avgWorkforce', this.value)" title="Click to edit"/>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-4 rounded-full bg-orange-100 text-orange-600"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-500">Safety Incidents</p>
+            <p class="text-2xl font-bold text-slate-900">0</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-4 rounded-full bg-purple-100 text-purple-600"><i data-lucide="clock" class="w-6 h-6"></i></div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-slate-500">Days Active</p>
+            <input type="text" id="stat-days-active" value="245" class="text-2xl font-bold text-slate-900 bg-transparent w-full border-b border-transparent hover:border-slate-300 focus:border-blue-500 outline-none transition-colors" onchange="updateStat('daysActive', this.value)" title="Click to edit"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-bold text-slate-900">Recent Reports</h2>
+          <button class="text-blue-600 text-sm font-medium hover:underline" onclick="switchView('archives')">View All</button>
+        </div>
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-sm text-slate-500">
+              <th class="pb-3 font-medium">Date</th>
+              <th class="pb-3 font-medium">Project</th>
+              <th class="pb-3 font-medium">Prepared By</th>
+              <th class="pb-3 font-medium">Status</th>
+              <th class="pb-3 font-medium text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="dashboard-recent-reports">
+            <tr><td colspan="5" class="py-8 text-center text-slate-500">No reports generated yet. Click "New Report" to create one.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Create Report View -->
+    <section id="create_report" class="view-section pb-24">
+      <header class="mb-8 pr-72">
+        <h1 class="text-3xl font-bold text-slate-900">Generate Daily Report</h1>
+        <p class="text-slate-500">Enter site details and upload photos for AI analysis.</p>
+      </header>
+
+      <div class="max-w-5xl space-y-8">
+        <!-- Project Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i data-lucide="hard-hat" class="text-yellow-500 w-5 h-5"></i> Project Details
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Project Name</label>
+              <input type="text" id="frm-projectName" placeholder="e.g., Downtown Commercial Plaza" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('projectName', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Client Name</label>
+              <input type="text" id="frm-clientName" placeholder="e.g., Emaar Properties" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('clientName', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Location</label>
+              <input type="text" id="frm-location" placeholder="e.g., Dubai, UAE" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('location', this.value)" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Site Conditions -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i data-lucide="thermometer" class="text-blue-500 w-5 h-5"></i> Site Conditions
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+              <input type="date" id="frm-date" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('date', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Weather</label>
+              <select id="frm-weather" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('weather', this.value)">
+                <option>Sunny</option>
+                <option>Cloudy</option>
+                <option>Rainy</option>
+                <option>Dust Storm</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Temperature (°C)</label>
+              <input type="number" id="frm-temperature" value="32" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('temperature', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Shift</label>
+              <select id="frm-shift" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('shift', this.value)">
+                <option>Day Shift</option>
+                <option>Night Shift</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resources & Progress -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <i data-lucide="users" class="text-green-500 w-5 h-5"></i> Resources & Status
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Workforce Count</label>
+              <input type="text" id="frm-workforce" placeholder="e.g., 150 Subcontractors, 20 Staff" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('workforce', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Heavy Equipment</label>
+              <input type="text" id="frm-equipment" placeholder="e.g., 2 Cranes, 4 Excavators" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('equipment', this.value)" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Site Visitors</label>
+              <input type="text" id="frm-visitors" placeholder="e.g., Client Rep, Safety Inspector" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" onchange="updateForm('visitors', this.value)" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-sm font-medium text-slate-700">Delays / Issues</label>
+                <button onclick="suggestMitigation(this)" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">✨ Suggest Fixes</button>
+              </div>
+              <textarea id="frm-delays" placeholder="Describe any roadblocks..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none" onchange="updateForm('delays', this.value)">None</textarea>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-sm font-medium text-slate-700">Planned for Tomorrow</label>
+                <button onclick="professionalizeText('frm-plannedTomorrow', this)" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">✨ Professionalize</button>
+              </div>
+              <textarea id="frm-plannedTomorrow" placeholder="Key activities for next shift..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none" onchange="updateForm('plannedTomorrow', this.value)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Photo Upload -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="camera" class="text-purple-500 w-5 h-5"></i> Site Photos & AI Analysis
+            </h2>
+            <div class="relative">
+              <input type="file" multiple accept="image/*" onchange="handlePhotoUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+              <button class="bg-purple-100 text-purple-700 px-4 py-2 rounded-lg font-medium hover:bg-purple-200 transition flex items-center gap-2">
+                <i data-lucide="image" class="w-4 h-4"></i> Upload Photos
+              </button>
+            </div>
+          </div>
+
+          <div id="photo-list-container">
+            <!-- Rendered via JS -->
+            <div class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center">
+              <i data-lucide="camera" class="mx-auto text-slate-400 mb-4 w-12 h-12"></i>
+              <p class="text-slate-600 font-medium">No photos uploaded yet.</p>
+              <p class="text-sm text-slate-400 mt-1">Upload site images to automatically generate progress descriptions using Vision AI.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Action -->
+        <div class="flex justify-end pt-4">
+          <button id="generate-report-btn" onclick="generateFinalReport()" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg flex items-center gap-3">
+            <i data-lucide="file-text" id="gen-icon" class="w-6 h-6"></i>
+            <span id="gen-text">Generate Daily Report</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upload Documents View -->
+    <section id="upload_documents" class="view-section pb-24">
+      <header class="mb-8 pr-72">
+        <h1 class="text-3xl font-bold text-slate-900">Project Documents</h1>
+        <p class="text-slate-500">Upload and manage site plans, specifications, and client letters.</p>
+      </header>
+      <div class="max-w-5xl space-y-8">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center relative hover:bg-slate-50 transition border-dashed border-2">
+          <input type="file" multiple onchange="handleDocumentUpload(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          <div class="flex flex-col items-center justify-center space-y-4 pointer-events-none">
+            <div class="p-4 bg-blue-100 rounded-full">
+              <i data-lucide="upload" class="text-blue-600 w-8 h-8"></i>
+            </div>
+            <div>
+              <p class="text-lg font-bold text-slate-700">Click or drag files here to upload</p>
+              <p class="text-sm text-slate-500 mt-1">Supports PDF, DOCX, XLSX, DWG up to 50MB</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-6 border-b border-slate-100 pb-4">Uploaded Files</h2>
+          <div id="documents-list-container">
+            <p class="text-slate-500 text-center py-8">No documents uploaded yet.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Archives View -->
+    <section id="archives" class="view-section pb-24">
+      <header class="mb-8 pr-72">
+        <h1 class="text-3xl font-bold text-slate-900">Report Archives</h1>
+        <p class="text-slate-500">Access and search all previously generated daily progress reports.</p>
+      </header>
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-6xl">
+        <div class="flex justify-between items-center mb-6">
+          <input type="text" placeholder="Search reports by project or date..." class="w-1/3 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+          <button class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition">Export List</button>
+        </div>
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-sm text-slate-500">
+              <th class="pb-3 font-medium">Date</th>
+              <th class="pb-3 font-medium">Project</th>
+              <th class="pb-3 font-medium">Prepared By</th>
+              <th class="pb-3 font-medium">Status</th>
+              <th class="pb-3 font-medium text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="archives-list">
+             <tr><td colspan="5" class="py-8 text-center text-slate-500">No reports in archive.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Settings View -->
+    <section id="settings" class="view-section pb-24">
+      <header class="mb-8 pr-72">
+        <h1 class="text-3xl font-bold text-slate-900">Settings</h1>
+        <p class="text-slate-500">Manage your profile and application preferences.</p>
+      </header>
+      <div class="max-w-3xl space-y-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h2 class="text-lg font-bold text-slate-900">Profile Information</h2>
+            <button id="lock-profile-btn" onclick="toggleProfileLock(false)" class="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1 hidden">
+              <i data-lucide="lock" class="w-4 h-4"></i> Lock Profile
+            </button>
+          </div>
+          
+          <div id="profile-locked-view" class="flex flex-col items-center justify-center py-8">
+            <i data-lucide="lock" class="text-slate-300 mb-3 w-10 h-10"></i>
+            <p class="text-sm text-slate-600 mb-4">Profile details are locked to prevent unauthorized changes.</p>
+            <div class="flex gap-2">
+              <input type="password" id="profile-password" placeholder="Enter password..." class="p-2 border border-slate-300 rounded-lg outline-none text-sm w-48" />
+              <button onclick="unlockProfile()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-900 transition">Unlock</button>
+            </div>
+          </div>
+
+          <div id="profile-unlocked-view" class="hidden">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input type="text" value="Hasnat Safdar" class="w-full p-2 border border-slate-300 rounded-lg outline-none bg-slate-50" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                <input type="text" value="Project App Developer" class="w-full p-2 border border-slate-300 rounded-lg outline-none bg-slate-50" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
+                <input type="email" value="hasnat@example.com" class="w-full p-2 border border-slate-300 rounded-lg outline-none" />
+              </div>
+            </div>
+            <button onclick="toggleProfileLock(false)" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Save Profile</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 class="text-lg font-bold text-slate-900 mb-4 border-b pb-2">Application Preferences</h2>
+          <div class="space-y-4">
+             <div class="flex items-center justify-between">
+                <div>
+                   <p class="font-medium text-slate-900">Email Notifications</p>
+                   <p class="text-sm text-slate-500">Receive an email when a report is generated.</p>
+                </div>
+                <input type="checkbox" class="w-5 h-5 text-blue-600 rounded border-slate-300" checked />
+             </div>
+             <div class="flex items-center justify-between">
+                <div>
+                   <p class="font-medium text-slate-900">Dark Mode</p>
+                   <p class="text-sm text-slate-500">Enable dark theme for the dashboard.</p>
+                </div>
+                <input type="checkbox" class="w-5 h-5 text-blue-600 rounded border-slate-300" />
+             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View Report (Output) -->
+    <section id="view_report" class="view-section py-12 flex flex-col items-center">
+      <div class="w-full max-w-4xl flex justify-between items-center mb-6 print-hidden">
+        <button onclick="switchView('create_report')" class="text-slate-600 hover:text-slate-900 font-medium flex items-center gap-2">
+          ← Back to Editor
+        </button>
+        <div class="flex gap-4">
+          <button onclick="translateReport(this)" class="bg-emerald-600 border border-emerald-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition flex items-center gap-2 shadow-sm" id="translate-btn">
+            ✨ Translate to Arabic
+          </button>
+          <button class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition flex items-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Export Word
+          </button>
+          <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2 shadow-sm">
+            <i data-lucide="printer" class="w-4 h-4"></i> Print PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Paper Sheet Simulation -->
+      <div id="report-paper" class="bg-white w-full max-w-4xl min-h-[1122px] p-12 shadow-2xl rounded-sm print-shadow-none print-m-0 print-p-0 print-w-full">
+        <!-- Generated content injected here -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- Application State ---
+    const apiKey = ""; // Execution environment provides this at runtime
+    let userApiKey = localStorage.getItem('geminiApiKey') || '';
+    let currentView = 'dashboard';
+    let reportsList = [];
+    let photos = [];
+    let documents = [];
+    let generatedReport = null;
+    let companyLogoBase64 = null;
+    
+    let formData = {
+      projectName: '',
+      clientName: '',
+      location: '',
+      date: new Date().toISOString().split('T')[0],
+      weather: 'Sunny',
+      temperature: '32',
+      shift: 'Day Shift',
+      workforce: '',
+      equipment: '',
+      visitors: '',
+      delays: 'None',
+      plannedTomorrow: ''
+    };
+
+    let dashboardStats = {
+      avgWorkforce: '350',
+      daysActive: '245'
+    };
+
+    // Initialize UI
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      document.getElementById('frm-date').value = formData.date;
+
+      // Handle saved API key UI state
+      if(userApiKey) {
+        document.getElementById('api-key-input').value = userApiKey;
+        const indicator = document.getElementById('api-indicator');
+        indicator.className = "w-3 h-3 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)] bg-green-500 transition-colors duration-300";
+        indicator.title = "API Connected";
+        document.getElementById('connect-btn').innerText = "Connected";
+      }
+    });
+
+    // --- Navigation ---
+    function switchView(viewName) {
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(viewName).classList.add('active');
+      currentView = viewName;
+
+      // Update sidebar styling
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if(btn.dataset.target === viewName) {
+          btn.className = 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-blue-600 text-white';
+        } else {
+          btn.className = 'nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-slate-800 text-slate-300';
+        }
+      });
+      window.scrollTo(0, 0);
+    }
+
+    // --- API Key Management ---
+    function connectApi() {
+      const input = document.getElementById('api-key-input').value.trim();
+      const indicator = document.getElementById('api-indicator');
+      const btn = document.getElementById('connect-btn');
+      
+      if (!input) {
+        indicator.className = "w-3 h-3 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)] bg-red-500 transition-colors duration-300";
+        indicator.title = "API Disconnected";
+        btn.innerText = "Connect";
+        userApiKey = '';
+        localStorage.removeItem('geminiApiKey');
+        return;
+      }
+
+      // Visual connection state only, safely skips fetch validations to avoid CORS/environment limits
+      indicator.className = "w-3 h-3 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)] bg-green-500 transition-colors duration-300";
+      indicator.title = "API Connected";
+      userApiKey = input;
+      localStorage.setItem('geminiApiKey', input);
+      btn.innerText = "Connected";
+      
+      setTimeout(() => { 
+        if (btn.innerText === "Connected") btn.innerText = "Update Key"; 
+      }, 2000);
+    }
+
+    async function callGemini(payload) {
+      // Prioritize the user's custom API key, otherwise default to the environment API key
+      const activeKey = userApiKey || apiKey;
+      
+      // Ensure we strictly use the Gemini 2.5 Flash model
+      const modelName = userApiKey ? 'gemini-2.5-flash' : 'gemini-2.5-flash-preview-09-2025';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+      
+      let retries = 3;
+      let delay = 1000;
+
+      for (let i = 0; i < retries; i++) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${err}`);
+          }
+          
+          const data = await response.json();
+          return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+        } catch (e) {
+          if (i === retries - 1) throw e;
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        }
+      }
+    }
+
+    // --- State & Form Updating ---
+    function updateForm(field, value) {
+      formData[field] = value;
+    }
+    
+    function updateStat(field, value) {
+      dashboardStats[field] = value;
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        companyLogoBase64 = reader.result;
+        const img = document.getElementById('dashboard-logo-img');
+        img.src = companyLogoBase64;
+        img.classList.remove('hidden');
+        document.getElementById('logo-btn-text').innerText = 'Change Logo';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // --- Photo Management ---
+    function handlePhotoUpload(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      files.forEach(file => {
+        if(photos.length >= 50) return; // limit 50
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          const photoId = Math.random().toString(36).substr(2, 9);
+          
+          const newPhoto = {
+            id: photoId,
+            url: URL.createObjectURL(file),
+            base64: base64String,
+            mimeType: file.type,
+            aiText: '',
+            isAnalyzing: false, // will be set immediately via analyzePhoto
+            category: 'General Progress'
+          };
+          
+          photos.push(newPhoto);
+          renderPhotos();
+          
+          // Automatically trigger analysis on upload
+          analyzePhoto(photoId);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePhoto(id) {
+      photos = photos.filter(p => p.id !== id);
+      renderPhotos();
+    }
+
+    function updatePhotoCategory(id, val) {
+      const p = photos.find(x => x.id === id);
+      if(p) p.category = val;
+    }
+
+    function updatePhotoAiText(id, val) {
+      const p = photos.find(x => x.id === id);
+      if(p) p.aiText = val;
+    }
+
+    async function analyzePhoto(id) {
+      const photo = photos.find(p => p.id === id);
+      if (!photo) return;
+
+      // Update UI to analyzing state
+      photo.isAnalyzing = true;
+      renderPhotos();
+
+      const prompt = `You are a professional construction project engineer. Analyze the uploaded construction site image and generate a concise report including:
+1. Activity Title
+2. Detailed Site Observation
+3. Work Progress Description
+4. Safety Observation
+5. Quality Observation
+Write using professional engineering language suitable for a daily construction report. Format as a neat text block.`;
+
+      const payload = {
+        contents: [{
+          role: "user",
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: photo.mimeType, data: photo.base64 } }
+          ]
+        }]
+      };
+
+      try {
+        const resultText = await callGemini(payload);
+        photo.aiText = resultText;
+      } catch (err) {
+        photo.aiText = 'Analysis failed. Please check your API key connection or try again manually.';
+      } finally {
+        photo.isAnalyzing = false;
+        renderPhotos();
+      }
+    }
+
+    function renderPhotos() {
+      const container = document.getElementById('photo-list-container');
+      if (photos.length === 0) {
+        container.innerHTML = `
+          <div class="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center">
+            <i data-lucide="camera" class="mx-auto text-slate-400 mb-4 w-12 h-12"></i>
+            <p class="text-slate-600 font-medium">No photos uploaded yet.</p>
+            <p class="text-sm text-slate-400 mt-1">Upload site images to automatically generate progress descriptions using Vision AI.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      let html = '<div class="space-y-6">';
+      photos.forEach((photo, i) => {
+        html += `
+          <div class="flex flex-col md:flex-row gap-6 p-4 border border-slate-200 rounded-xl bg-slate-50 relative group">
+            <button onclick="removePhoto('${photo.id}')" class="absolute top-2 right-2 p-2 bg-white rounded-full shadow-sm text-red-500 opacity-0 group-hover:opacity-100 transition z-10">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+            
+            <div class="w-full md:w-1/3">
+              <img src="${photo.url}" alt="Site upload" class="w-full h-48 object-cover rounded-lg shadow-sm border border-slate-200" />
+              <select onchange="updatePhotoCategory('${photo.id}', this.value)" class="mt-3 w-full p-2 text-sm border border-slate-300 rounded-lg outline-none">
+                <option ${photo.category === 'General Progress' ? 'selected' : ''}>General Progress</option>
+                <option ${photo.category === 'Civil Works' ? 'selected' : ''}>Civil Works</option>
+                <option ${photo.category === 'Structural Works' ? 'selected' : ''}>Structural Works</option>
+                <option ${photo.category === 'Architectural Works' ? 'selected' : ''}>Architectural Works</option>
+                <option ${photo.category === 'MEP Works' ? 'selected' : ''}>MEP Works</option>
+                <option ${photo.category === 'Safety' ? 'selected' : ''}>Safety</option>
+                <option ${photo.category === 'Quality' ? 'selected' : ''}>Quality</option>
+              </select>
+            </div>
+
+            <div class="w-full md:w-2/3 flex flex-col">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-semibold text-slate-700 uppercase tracking-wider">AI Observation</span>
+                <button onclick="analyzePhoto('${photo.id}')" ${photo.isAnalyzing ? 'disabled' : ''} class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-md hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-1">
+                  ${photo.isAnalyzing ? '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Analyzing...' : '<i data-lucide="sparkles" class="w-3 h-3"></i> Spark AI'}
+                </button>
+              </div>
+              <textarea onchange="updatePhotoAiText('${photo.id}', this.value)" placeholder="AI will generate a professional description of the work progress and safety observations here. You can click 'Spark AI' or write manually." class="w-full flex-1 p-3 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none min-h-[120px]">${photo.aiText}</textarea>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- Document Management ---
+    function handleDocumentUpload(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+
+      const newDocs = files.map(file => ({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+        dateUploaded: new Date().toLocaleDateString()
+      }));
+
+      documents = [...documents, ...newDocs];
+      renderDocuments();
+    }
+
+    function removeDocument(id) {
+      documents = documents.filter(d => d.id !== id);
+      renderDocuments();
+    }
+
+    function renderDocuments() {
+      const container = document.getElementById('documents-list-container');
+      if (documents.length === 0) {
+        container.innerHTML = `<p class="text-slate-500 text-center py-8">No documents uploaded yet.</p>`;
+        return;
+      }
+      
+      let html = '<div class="space-y-4">';
+      documents.forEach(doc => {
+        html += `
+          <div class="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-white hover:shadow-sm transition">
+            <div class="flex items-center gap-4">
+              <div class="p-2 bg-slate-100 rounded-lg">
+                <i data-lucide="file-text" class="text-slate-600 w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="font-semibold text-slate-900">${doc.name}</p>
+                <p class="text-xs text-slate-500">${doc.size} • Uploaded on ${doc.dateUploaded}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="text-blue-600 text-sm font-medium hover:underline">Download</button>
+              <button onclick="removeDocument('${doc.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="Delete document">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- Generate Final Report ---
+    async function generateFinalReport() {
+      const btn = document.getElementById('generate-report-btn');
+      const icon = document.getElementById('gen-icon');
+      const text = document.getElementById('gen-text');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-70');
+      icon.setAttribute('data-lucide', 'loader-2');
+      icon.classList.add('animate-spin');
+      text.innerText = "Compiling Report...";
+      lucide.createIcons();
+
+      try {
+        let photoContext = photos.map((p, idx) => `Photo ${idx + 1} (${p.category}):\n${p.aiText || 'No AI description generated.'}`).join('\n\n');
+
+        const prompt = `You are a Senior Construction Project Manager. Based on the following inputs, generate a professional Daily Progress Report. 
+Use formal engineering language suitable for submission to clients, consultants, and stakeholders.
+
+PROJECT DETAILS:
+Project Name: ${formData.projectName || 'Not specified'}
+Client: ${formData.clientName || 'Not specified'}
+Location: ${formData.location || 'Not specified'}
+Date: ${formData.date}
+Weather: ${formData.weather}, Temp: ${formData.temperature}°C
+Shift: ${formData.shift}
+
+RESOURCES:
+Workforce Count: ${formData.workforce || 'Not provided'}
+Equipment Count: ${formData.equipment || 'Not provided'}
+Visitors: ${formData.visitors || 'None'}
+
+SITE OBSERVATIONS & ISSUES:
+Delays/Issues: ${formData.delays}
+Planned Activities for Tomorrow: ${formData.plannedTomorrow}
+
+PHOTO & AI OBSERVATIONS:
+${photoContext}
+
+REQUIRED REPORT STRUCTURE (Format in clean Markdown):
+# Daily Progress Report
+**Date:** [Date] | **Project:** [Project Name]
+
+## 1. Executive Summary
+(Summarize the day's overall progress)
+
+## 2. Activities Completed Today
+(Synthesize from the photo observations and resources)
+
+## 3. Progress Status
+(General statement on progress)
+
+## 4. Safety & Quality Observations
+(Combine safety and quality notes from photos)
+
+## 5. Site Resources
+(Summarize workforce and equipment)
+
+## 6. Delays / Constraints
+(List from inputs)
+
+## 7. Planned Activities for Tomorrow
+(List from inputs)`;
+
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        const reportMarkdown = await callGemini(payload);
+
+        generatedReport = {
+          markdown: reportMarkdown,
+          date: formData.date,
+          projectName: formData.projectName || 'Untitled Project',
+          clientName: formData.clientName || 'Not specified',
+          location: formData.location || 'Not specified',
+          photos: [...photos],
+          logo: companyLogoBase64
+        };
+
+        reportsList.unshift({
+          id: Math.random().toString(36).substr(2, 9),
+          date: formData.date,
+          projectName: generatedReport.projectName,
+          preparedBy: 'Hasnat Safdar',
+          status: 'Generated'
+        });
+
+        updateReportsTables();
+        renderViewReport();
+        switchView('view_report');
+
+      } catch (err) {
+        alert("Error generating report: Please verify your API Key connection.");
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-70');
+        icon.setAttribute('data-lucide', 'file-text');
+        icon.classList.remove('animate-spin');
+        text.innerText = "Generate Daily Report";
+        lucide.createIcons();
+      }
+    }
+
+    // Render tables in Dashboard and Archives
+    function updateReportsTables() {
+      document.getElementById('stat-total-reports').innerText = reportsList.length;
+      
+      const renderTableHtml = () => {
+        if (reportsList.length === 0) {
+          return `<tr><td colspan="5" class="py-8 text-center text-slate-500">No reports generated yet.</td></tr>`;
+        }
+        return reportsList.map(r => `
+          <tr class="border-b border-slate-100 hover:bg-slate-50">
+            <td class="py-4 text-sm text-slate-900">${r.date}</td>
+            <td class="py-4 text-sm text-slate-900">${r.projectName}</td>
+            <td class="py-4 text-sm text-slate-500">${r.preparedBy}</td>
+            <td class="py-4">
+              <span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 flex items-center w-max gap-1">
+                <i data-lucide="check-circle" class="w-3 h-3"></i> ${r.status}
+              </span>
+            </td>
+            <td class="py-4 text-right flex justify-end gap-3">
+               <button class="text-slate-400 hover:text-slate-700 transition" title="Download Word Doc">
+                 <i data-lucide="download" class="w-4 h-4"></i>
+               </button>
+               <button class="text-blue-600 hover:text-blue-800 text-sm font-medium" onclick="switchView('view_report')">View PDF</button>
+            </td>
+          </tr>
+        `).join('');
+      };
+
+      const html = renderTableHtml();
+      document.getElementById('dashboard-recent-reports').innerHTML = html;
+      document.getElementById('archives-list').innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // Render Final Report DOM
+    function renderViewReport() {
+      if (!generatedReport) return;
+      const paper = document.getElementById('report-paper');
+      
+      let html = `
+        <div class="border-b-4 border-slate-800 pb-6 mb-8 flex justify-between items-end">
+          <div>
+            ${generatedReport.logo ? `<img src="${generatedReport.logo}" alt="Company Logo" class="h-16 mb-4 object-contain" />` : ''}
+            <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Daily Progress Report</h1>
+            <p class="text-lg text-slate-600 mt-2 font-medium">${generatedReport.projectName}</p>
+          </div>
+          <div class="text-right text-sm text-slate-600 space-y-1">
+            <p><strong>Date:</strong> ${generatedReport.date}</p>
+            <p><strong>Client:</strong> ${generatedReport.clientName}</p>
+            <p><strong>Location:</strong> ${generatedReport.location}</p>
+            <p><strong>Report #:</strong> DPR-${generatedReport.date.replace(/-/g, '')}</p>
+          </div>
+        </div>
+
+        <div class="prose prose-slate max-w-none prose-h1:text-2xl prose-h1:border-b prose-h1:pb-2 prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-slate-700 prose-li:text-slate-700">
+          ${marked.parse(generatedReport.markdown)}
+        </div>
+      `;
+
+      if (generatedReport.photos.length > 0) {
+        html += `
+          <div class="mt-12 pt-8 border-t-2 border-slate-200">
+            <h2 class="text-2xl font-bold text-slate-900 mb-6 border-b pb-2">Site Photo Log</h2>
+            <div class="grid grid-cols-2 gap-8">
+              ${generatedReport.photos.map((photo, i) => `
+                <div class="break-inside-avoid">
+                  <img src="${photo.url}" class="w-full h-64 object-cover border border-slate-300 rounded-sm" alt="Site Progress" />
+                  <div class="mt-3 text-sm text-slate-700">
+                    <p class="font-bold">Photo ${i + 1} - ${photo.category}</p>
+                    <p class="mt-1 italic">${photo.aiText}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="mt-16 pt-16 border-t-2 border-slate-800 flex justify-between">
+          <div class="w-1/3 text-center">
+            <div class="border-b border-slate-400 h-16 mb-2"></div>
+            <p class="font-bold text-slate-900">Prepared By</p>
+            <p class="text-sm text-slate-500">Hasnat Safdar</p>
+          </div>
+          <div class="w-1/3 text-center">
+            <div class="border-b border-slate-400 h-16 mb-2"></div>
+            <p class="font-bold text-slate-900">Reviewed By</p>
+            <p class="text-sm text-slate-500">Project Manager</p>
+          </div>
+        </div>
+      `;
+
+      paper.innerHTML = html;
+    }
+
+    // --- Settings Profile Lock ---
+    function unlockProfile() {
+      const pwd = document.getElementById('profile-password').value;
+      if (pwd === 'adminhasnat') {
+        toggleProfileLock(true);
+        document.getElementById('profile-password').value = '';
+      } else {
+        alert("Incorrect password.");
+      }
+    }
+
+    function toggleProfileLock(unlock) {
+      const lockedView = document.getElementById('profile-locked-view');
+      const unlockedView = document.getElementById('profile-unlocked-view');
+      const lockBtn = document.getElementById('lock-profile-btn');
+
+      if (unlock) {
+        lockedView.classList.add('hidden');
+        unlockedView.classList.remove('hidden');
+        lockBtn.classList.remove('hidden');
+      } else {
+        lockedView.classList.remove('hidden');
+        unlockedView.classList.add('hidden');
+        lockBtn.classList.add('hidden');
+      }
+    }
+
+    // --- New Gemini LLM Features ---
+    async function suggestMitigation(btn) {
+      const delayEl = document.getElementById('frm-delays');
+      const delayText = delayEl.value;
+      
+      if(!delayText || delayText.trim().toLowerCase() === 'none') {
+        return alert('Please describe a specific delay or issue first to get mitigations.');
+      }
+
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Thinking...';
+      lucide.createIcons();
+
+      try {
+        const prompt = `You are a Senior Construction Project Manager. The site is experiencing this delay/issue: "${delayText}". Suggest 2 brief, actionable mitigation strategies to overcome this and recover the schedule.`;
+        const res = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
+        delayEl.value = delayText + '\n\n**AI Recommended Mitigations:**\n' + res;
+        updateForm('delays', delayEl.value);
+      } catch(e) { 
+        alert("Error generating mitigations. Check your API key."); 
+      } finally {
+        btn.innerHTML = '✨ Suggest Fixes';
+      }
+    }
+
+    async function professionalizeText(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const text = el.value;
+      
+      if(!text.trim()) return alert('Please enter some text to professionalize.');
+
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Writing...';
+      lucide.createIcons();
+
+      try {
+        const prompt = `Rewrite the following construction site notes into formal, highly professional engineering language suitable for a client progress report. Keep it concise and direct.\n\nDraft Notes: ${text}`;
+        const res = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
+        el.value = res;
+        updateForm(elementId.replace('frm-', ''), res);
+      } catch(e) { 
+        alert("Error rewriting text. Check your API key."); 
+      } finally {
+        btn.innerHTML = '✨ Professionalize';
+      }
+    }
+
+    async function translateReport(btn) {
+      if (!generatedReport) return;
+
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Translating...';
+      lucide.createIcons();
+
+      try {
+        const prompt = `Translate the following Construction Daily Progress Report into professional engineering Arabic. Maintain the Markdown formatting exactly as it is.\n\n${generatedReport.markdown}`;
+        const res = await callGemini({ contents: [{ parts: [{ text: prompt }] }] });
+        
+        // Store translated version and re-render
+        generatedReport.markdown = res;
+        generatedReport.projectName = generatedReport.projectName + " (مترجم)";
+        
+        renderViewReport();
+        
+        // Ensure RTL text direction on the markdown container for Arabic
+        setTimeout(() => {
+          const prose = document.querySelector('.prose');
+          if(prose) {
+             prose.style.direction = 'rtl';
+             prose.style.textAlign = 'right';
+          }
+        }, 100);
+
+      } catch(e) { 
+        alert("Error translating report. Check your API key."); 
+      } finally {
+        btn.innerHTML = '✨ Translated';
+        btn.disabled = true;
+      }
+    }
+
+  </script>
+</body>
+</html>
